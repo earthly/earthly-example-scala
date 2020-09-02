@@ -1,4 +1,4 @@
-FROM hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12
+FROM hseeberger/scala-sbt:11.0.6_1.3.10_2.13.1
 WORKDIR /scala-example
 
 deps:
@@ -12,6 +12,11 @@ build:
     COPY src src
     RUN sbt assembly
     SAVE ARTIFACT target/scala-2.13 /scala-example AS LOCAL build/bin
+
+test:
+    FROM +deps
+    COPY src src
+    RUN sbt test
 
 docker:
     COPY +build/scala-example build/bin
