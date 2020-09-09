@@ -1,4 +1,5 @@
 FROM hseeberger/scala-sbt:11.0.6_1.3.10_2.13.1
+#FROM docker:19.03.12-dind
 WORKDIR /scala-example
 
 deps:
@@ -16,7 +17,12 @@ build:
 test:
     FROM +deps
     COPY src src
-    RUN sbt test
+    COPY docker-compose.yml ./
+    WITH DOCKER 
+        RUN docker-compose up -d ;\
+            sbt test &&\
+            docker-compose down 
+    END
 
 docker:
     COPY +build/scala-example build/bin
