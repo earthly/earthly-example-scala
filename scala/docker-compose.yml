@@ -1,7 +1,6 @@
 version: "3"
 
 services:
-
   postgres:
     container_name: local-postgres
     image: postgres:alpine
@@ -13,6 +12,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
+  # Load web UI for postgres
   # http://localhost:8080/?pgsql=postgres&username=postgres&db=postgres&ns=public
   postgres-ui:
     container_name: local-postgres-ui

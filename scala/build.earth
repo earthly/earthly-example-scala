@@ -1,5 +1,5 @@
-FROM hseeberger/scala-sbt:11.0.6_1.3.10_2.13.1
-#FROM docker:19.03.12-dind
+# FROM hseeberger/scala-sbt:11.0.6_1.3.10_2.13.1
+FROM docker:19.03.12-dind
 WORKDIR /scala-example
 
 deps:
@@ -15,12 +15,11 @@ build:
     SAVE ARTIFACT target/scala-2.13 /scala-example AS LOCAL build/bin
 
 test:
-    FROM +deps
+    # FROM +deps
     COPY src src
     COPY docker-compose.yml ./
     WITH DOCKER 
         RUN docker-compose up -d ;\
-            sbt test &&\
             docker-compose down 
     END
 
