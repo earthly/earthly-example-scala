@@ -1,0 +1,25 @@
+FROM hseeberger/scala-sbt:11.0.6_1.3.10_2.13.1
+WORKDIR /scala-example
+
+deps:
+    COPY build.sbt ./
+    COPY project project
+    RUN sbt update
+    SAVE IMAGE
+
+build:
+    FROM +deps
+    COPY src src
+    RUN sbt compile
+
+test:
+    FROM +deps
+    COPY src src
+    RUN sbt test
+
+docker:
+    FROM +deps
+    COPY src src
+    RUN sbt assembly
+    ENTRYPOINT ["java","-cp","target/scala-2.13/scala-example-assembly-1.0.jar","Main"]
+    SAVE IMAGE scala-example:latest

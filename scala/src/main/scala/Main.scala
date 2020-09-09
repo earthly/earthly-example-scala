@@ -1,3 +1,3 @@
 object Main extends App {
-  println("Hello, World! 1")
+  println("Hello, World!")
 }
