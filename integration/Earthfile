@@ -1,9 +1,10 @@
-FROM hseeberger/scala-sbt:11.0.6_1.3.10_2.13.1
+FROM gafiatulin/alpine-sbt
 WORKDIR /scala-example
 
 deps:
     COPY build.sbt ./
     COPY project project
+    # RUN curl -L -o /root/.sbt/launchers/1.3.2/sbt-launch.jar https://repo.scala-sbt.org/scalasbt/maven-releases/org/scala-sbt/sbt-launch/1.3.2/sbt-launch.jar
     RUN sbt update
     SAVE IMAGE
 
@@ -17,14 +18,28 @@ test:
     COPY src src
     RUN sbt test
 
-integration_test:
+int1:
     FROM +deps
+    # RUN curl -fsSL https://get.docker.com -o get-docker.sh
+    # RUN sudo sh get-docker.sh
+    # RUN apt-get update
+    # RUN apt-get -y install docker
+    # RUN apt-get -y install docker-compose 
+    # RUN false
     COPY src src
+    COPY docker-compose.yml ./ 
+    WITH DOCKER 
+        RUN false
+        # RUN docker-compose up -d && docker-compose down 
+    END
+
+int2:
+    FROM docker:dind
+    RUN apk add docker-compose
     COPY docker-compose.yml ./
-     WITH DOCKER 
-        RUN docker-compose up -d ;\
-            sbt test && \
-            docker-compose down 
+    WITH DOCKER 
+        RUN FALSE
+        # RUN docker-compose up -d && docker-compose down 
     END
 
 docker:
