@@ -2,6 +2,7 @@ FROM docker:19.03.7-dind
 WORKDIR /scala-example
 RUN apk add openjdk11 docker-compose bash wget
 
+
 sbt: 
     #Scala
     # Defaults if not specified in --build-arg
@@ -17,16 +18,18 @@ sbt:
 
     # This triggers a bunch of useful downloads.
     RUN sbt sbtVersion
+    SAVE IMAGE
 
 project-files:
+    FROM +sbt
     COPY build.sbt ./
     COPY project project
-    # Run sbt with a blank file for caching purposes.
+    # Run sbt for caching purposes.
     RUN touch a.scala && sbt compile && rm a.scala
     SAVE IMAGE
 
 build:
-    FROM +project
+    FROM +project-files
     COPY src src
     RUN sbt compile
     SAVE IMAGE
