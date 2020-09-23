@@ -2,7 +2,7 @@ FROM docker:19.03.7-dind
 WORKDIR /scala-example
 RUN apk add openjdk11 curl docker-compose bash
 
-#Scala
+# Scala
 # Defaults if not specified in --build-arg
 ARG sbt_version=1.3.2
 ARG sbt_home=/usr/local/sbt
