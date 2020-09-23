@@ -1,14 +1,11 @@
 FROM docker:19.03.7-dind
-
-RUN apk add openjdk11
+WORKDIR /scala-example
+RUN apk add openjdk11 curl docker-compose bash
 
 #Scala
 # Defaults if not specified in --build-arg
 ARG sbt_version=1.3.2
 ARG sbt_home=/usr/local/sbt
-
-# Cleverly placed here for caching reasons
-RUN apk add --no-cache --update bash
 
 # Download and extract from archive
 RUN apk add --no-cache --update wget
@@ -19,7 +16,6 @@ RUN ln -sv "$sbt_home"/bin/sbt /usr/bin/
 
 # This triggers a bunch of useful downloads.
 RUN sbt sbtVersion
-WORKDIR /scala-example
 
 deps:
     COPY build.sbt ./
@@ -32,25 +28,26 @@ build:
     FROM +deps
     COPY src src
     RUN sbt compile
+    SAVE IMAGE
 
 unit-test:
-    FROM +deps
+    FROM +build
     COPY src src
     RUN sbt test
 
 integration-test:
-    FROM +deps
-    RUN apk --update --no-cache add docker-compose
+    FROM +build
     COPY src src
     COPY docker-compose.yml ./ 
     WITH DOCKER 
         RUN docker-compose up -d && \
+            while ! nc -z localhost 5432; do sleep 1; done; \
             sbt it:test && \
             docker-compose down 
     END
 
 docker:
-    FROM +deps
+    FROM +build
     COPY src src
     RUN sbt assembly
     ENTRYPOINT ["java","-cp","target/scala-2.12/scala-example-assembly-1.0.jar","Main"]
@@ -58,7 +55,6 @@ docker:
 
 smoke-test:
     FROM +deps
-    RUN apk add curl docker-compose
     COPY docker-compose.yml ./ 
     WITH DOCKER
         DOCKER LOAD +docker scala-example:latest

@@ -8,7 +8,7 @@ object Main extends App {
 
   val xa = Transactor.fromDriverManager[IO](
     "org.postgresql.Driver", 
-    "jdbc:postgresql://postgres@localhost:5432/iso3166", 
+    "jdbc:postgresql://localhost:5432/iso3166", 
     "postgres",
     "postgres"
   )
