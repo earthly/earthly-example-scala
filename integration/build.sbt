@@ -5,10 +5,6 @@ name := "scala-example"
 organization := "earthly.dev"
 version := "1.0"
 
-// ThisBuild / organization := "earthly.dev"
-// ThisBuild / scalaVersion := "2.12.1"
-// ThisBuild / version      := "1.0"
-
 libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-core"      % "0.9.0",
   "org.tpolecat" %% "doobie-postgres"  % "0.9.0",         
