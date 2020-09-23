@@ -1,10 +1,10 @@
-version: "2"
+version: "3"
 
 services:
 
   postgres:
     container_name: local-postgres
-    image: postgres:alpine
+    image: aa8y/postgres-dataset:iso3166
     ports:
       - 5432:5432
     hostname: postgres

@@ -44,7 +44,9 @@ integration-test:
     COPY src src
     COPY docker-compose.yml ./ 
     WITH DOCKER 
-        RUN docker-compose up -d && sbt test && docker-compose down 
+        RUN docker-compose up -d && \
+            sbt it:test && \
+            docker-compose down 
     END
 
 docker:
@@ -56,8 +58,13 @@ docker:
 
 smoke-test:
     FROM +deps
-    RUN apk add curl
+    RUN apk add curl docker-compose
+    COPY docker-compose.yml ./ 
     WITH DOCKER
         DOCKER LOAD +docker scala-example:latest
-        RUN docker run --rm -d --network=host nginxdemos/hello:plain-text && sleep 5 && curl -s 0.0.0.0:32769 | grep Server
+        RUN docker-compose up -d && \ 
+            while ! nc -z localhost 5432; do sleep 1; done; \
+            docker run --network=host scala-example:latest && \
+            docker-compose down 
     END
+    
