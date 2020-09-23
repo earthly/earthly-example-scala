@@ -1,23 +1,25 @@
 FROM docker:19.03.7-dind
 WORKDIR /scala-example
-RUN apk add openjdk11 curl docker-compose bash
+RUN apk add openjdk11 docker-compose bash wget
 
-#Scala
-# Defaults if not specified in --build-arg
-ARG sbt_version=1.3.2
-ARG sbt_home=/usr/local/sbt
 
-# Download and extract from archive
-RUN apk add --no-cache --update wget
-RUN mkdir -pv "$sbt_home"
-RUN wget -qO - "https://github.com/sbt/sbt/releases/download/v$sbt_version/sbt-$sbt_version.tgz" >/tmp/sbt.tgz
-RUN tar xzf /tmp/sbt.tgz -C "$sbt_home" --strip-components=1
-RUN ln -sv "$sbt_home"/bin/sbt /usr/bin/
+sbt: 
+    #Scala
+    # Defaults if not specified in --build-arg
+    ARG sbt_version=1.3.2
+    ARG sbt_home=/usr/local/sbt
 
-# This triggers a bunch of useful downloads.
-RUN sbt sbtVersion
+    # Download and extract from archive
+    RUN apk add --no-cache --update wget
+    RUN mkdir -pv "$sbt_home"
+    RUN wget -qO - "https://github.com/sbt/sbt/releases/download/v$sbt_version/sbt-$sbt_version.tgz" >/tmp/sbt.tgz
+    RUN tar xzf /tmp/sbt.tgz -C "$sbt_home" --strip-components=1
+    RUN ln -sv "$sbt_home"/bin/sbt /usr/bin/
 
-deps:
+    # This triggers a bunch of useful downloads.
+    RUN sbt sbtVersion
+
+project-files:
     COPY build.sbt ./
     COPY project project
     #run sbt for caching purposes
@@ -25,7 +27,7 @@ deps:
     SAVE IMAGE
 
 build:
-    FROM +deps
+    FROM +project
     COPY src src
     RUN sbt compile
     SAVE IMAGE
@@ -41,7 +43,7 @@ integration-test:
     COPY docker-compose.yml ./ 
     WITH DOCKER 
         RUN docker-compose up -d && \
-            while ! nc -z localhost 5432; do sleep 1; done; \
+            for i in {1..30}; do nc -z localhost 5432 && break; sleep 1; done \
             sbt it:test && \
             docker-compose down 
     END
@@ -54,12 +56,12 @@ docker:
     SAVE IMAGE scala-example:latest
 
 smoke-test:
-    FROM +deps
+    FROM +base
     COPY docker-compose.yml ./ 
     WITH DOCKER
         DOCKER LOAD +docker scala-example:latest
         RUN docker-compose up -d && \ 
-            while ! nc -z localhost 5432; do sleep 1; done; \
+            for i in {1..30}; do nc -z localhost 5432 && break; sleep 1; done \
             docker run --network=host scala-example:latest && \
             docker-compose down 
     END
