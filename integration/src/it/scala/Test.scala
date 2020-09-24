@@ -16,15 +16,7 @@ class DatabaseIntegrationTest extends FlatSpec {
 
   "An table" should "have country data" in {
     val dal = new DataAccessLayer()
-    assert(dal.countries().transact(xa).unsafeRunSync.size != 0)
+    assert(dal.countries(5).transact(xa).unsafeRunSync.size == 5)
   }
 }
 
-class DataAccessLayer()
-{
-  def countries(): ConnectionIO[List[String]] 
-      = sql"select name from country"
-          .query[String]
-          .stream
-          .compile.toList
-}

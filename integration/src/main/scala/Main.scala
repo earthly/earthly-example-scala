@@ -4,22 +4,39 @@ import cats.effect.IO
 import scala.concurrent.ExecutionContext
 
 object Main extends App {
-  implicit val cs = IO.contextShift(ExecutionContext.global)
+  val dal = new DataAccessLayer()
+  val dv = new DataVersion()
 
-  val xa = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver", 
-    "jdbc:postgresql://localhost:5432/iso3166", 
-    "postgres",
-    "postgres"
-  )
-  val y = xa.yolo
-  import y._
+  if(dv.version() > 1)
+  {
+    implicit val cs = IO.contextShift(ExecutionContext.global)
+    val xa = Transactor.fromDriverManager[IO](
+      "org.postgresql.Driver", 
+      "jdbc:postgresql://localhost:5432/iso3166", 
+      "postgres",
+      "postgres"
+    )
 
-  sql"select name from country"
-    .query[String] 
-    .stream
-    .take(5)
-    .quick
-    .unsafeRunSync
+    val countries = dal.countries(5)
+                       .transact(xa).unsafeRunSync
+                       .toList.map(_.name).mkString(", ")
 
+    println(s"The first 5 countries alphabetically are: $countries")
+  }
+}
+
+class DataAccessLayer()
+{
+  case class Country(name : String)
+
+  def countries(limit : Int): ConnectionIO[List[Country]] 
+      = sql"select name from country"
+          .query[Country]
+          .stream
+          .take(limit)
+          .compile.toList
+}
+
+class DataVersion(){
+  def version() : Int  = 7
 }

@@ -1,7 +1,9 @@
 import org.scalatest.FlatSpec
 
-class ListFlatSpec extends FlatSpec {
-  "An empty List" should "have size 0" in {
-    assert(List.empty.size == 0)
+class DataVersionSpec extends FlatSpec {
+
+  val dv = new DataVersion()
+  "Data Version " should " be positive" in {
+    assert(dv.version > 0)
   }
 }
