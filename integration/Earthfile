@@ -71,3 +71,8 @@ smoke-test:
             docker-compose down 
     END
     
+all:
+  BUILD +build
+  BUILD +unit-test
+  BUILD +integration-test
+  BUILD +smoke-test
